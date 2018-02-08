@@ -166,6 +166,18 @@
     	\\iff
     }
   }
+  % Define K Language style
+  \lstdefinelanguage{k}
+  {
+    basicstyle=\ttfamily\footnotesize,
+    backgroundcolor = \color{backgray},
+    % print all characters at their natural width
+   	columns=fullflexible,
+   	% @ ... text in color ... @
+    moredelim=**[is][\color{red}]{@r}{@r},
+    moredelim=**[is][\color{codeblue}]{@b}{@b},
+    moredelim=**[is][\color{codegreen}]{@g}{@g}
+  }
 
   % Define |-fin
   \newcommand{\vdashfin}{\vdash_\text{fin}}
@@ -204,7 +216,7 @@
   \newcommand{\Context}{\textit{Context}}
   \newcommand{\hole}{\boxempty}
   \newcommand{\Exp}{\textit{Exp}}
-  \newcommand{\AExp}{\textit{AExp}}
+  \newcommand{\AExp}{\textit{A\!Exp}}
   \newcommand{\BExp}{\textit{BExp}}
   \newcommand{\Stmt}{\textit{Stmt}}
   \newcommand{\ite}{\textsf{ite}}
@@ -445,6 +457,8 @@
   \newcommand{\att}{\mathit{att}}
   \newcommand{\verbose}{\mathit{verbose}}
   \newcommand{\var}{\mathit{var}}
+  
+  \newcommand{\Timp}{T_\mathtt{imp}}
   
 
   
@@ -6953,6 +6967,8 @@ where $s_1',\dots,s_m'$ are all \syntacc{meta-sort-variable} in $s_1,\dots,s_n$.
 
 %\subsection{Example D: Contexts}
 
+
+
 \section{Conclusion and Future Work}
 It took us a long journey to realize that \K is a fragment of matching logic 
 and all \K does is logic reasoning with some matching logic theories
@@ -7048,6 +7064,152 @@ Apart from developing the above three kinds of provers, we also need to
 consider how to generate proof obligations and how to represent proofs in a 
 structured and well-organized manner.
 
+\section{From \K Definitions to Matching Logic Theories: A Case Study}
+
+In this section, we will use the K definition for the simple imperative 
+language, 
+the IMP language, as an example to show how K definitions are in fact matching 
+logic theories.
+
+\subsection{The \K definition of IMP}
+
+The following is the complete \K definition of the IMP language, as exactly 
+how it appears in the \K tutorial with all comments removed.
+The code highlighted in red is mainly for parsing and document generation, and 
+has no semantic meaning. 
+\begin{lstlisting}[language=k]
+module IMP-SYNTAX
+  syntax AExp  ::= Int | Id
+                 | AExp "/" AExp              [@rleft@r, strict]
+                 @r>@r AExp "+" AExp              [@rleft@r, strict]
+                 | @r"(" AExp ")"               [bracket]@r
+  syntax BExp  ::= Bool
+                 | AExp "<=" AExp     [seqstrict, @rlatex({#1}\leq{#2})@r]
+                 | "!" BExp                   [strict]
+                 @r>@r BExp "&&" BExp             [@rleft@r, strict(1)]
+                 | @r"(" BExp ")"               [bracket]@r
+  syntax Block ::= "{" "}"
+                 | "{" Stmt "}"
+  syntax Stmt  ::= Block
+                 | Id "=" AExp ";"            [strict(2)]
+                 | "if" "(" BExp ")"
+                   Block "else" Block         [strict(1)]
+                 | "while" "(" BExp ")" Block
+                 > Stmt Stmt                  [@rleft@r]
+  syntax Pgm ::= "int" Ids ";" Stmt
+  syntax Ids ::= List{Id,","}
+endmodule
+
+
+module IMP
+  imports IMP-SYNTAX
+  syntax KResult ::= Int | Bool
+
+  configuration <T color="yellow">
+                  <k color="green"> $PGM:Pgm </k>
+                  <state color="red"> .Map </state>
+                </T>
+
+  rule <k> X:Id => I ...</k> <state>... X |-> I ...</state>
+  
+  rule I1 / I2 => I1 /Int I2  requires I2 =/=Int 0
+  rule I1 + I2 => I1 +Int I2
+  
+  rule I1 <= I2 => I1 <=Int I2
+  rule ! T => notBool T
+  rule true && B => B
+  rule false && _ => false
+
+  rule {} => .   [@rstructural@r]
+  rule {S} => S  [@rstructural@r]
+
+  rule <k> X = I:Int; => . ...</k> <state>... X |-> (_ => I) ...</state>
+  rule S1:Stmt S2:Stmt => S1 ~> S2  [@rstructural@r]
+  rule if (true)  S else _ => S
+  rule if (false) _ else S => S
+  rule while (B) S => if (B) {S while (B) S} else {}  [@rstructural@r]
+
+  rule <k> int (X,Xs => Xs);_ </k> <state> Rho:Map (.Map => X|->0) </state>
+    requires notBool (X in keys(Rho))
+  rule int .Ids; S => S  [@rstructural@r]
+  
+endmodule
+\end{lstlisting}
+
+In the following, we will show how the above \K definition defines a matching 
+logic theory, which we denote as $\Timp$.
+
+\subsection{Syntax Definitions}
+
+A syntax definition in \K consists of a nonterminal and a production, separated 
+with ``\texttt{::=}''.
+A syntax definition may have none, one, or more attributes, wrapped in braces.
+Every nonterminal defines a sort, and every production defines a symbol.
+
+\newcommand{\IntAsAExp}{\inj{\Int}{\AExp}}
+\newcommand{\Id}{\mathit{Id}}
+
+\begin{lstlisting}[language=k]
+  syntax AExp ::= Int
+\end{lstlisting}
+The above syntax definition defines a sort $\AExp$ as a ``subsort'' of the 
+built-in sort $\Int$.
+From Section~\ref{sec:dealing-with-OS}, we know this means there is an implicit 
+injection function
+\begin{align*}
+\IntAsAExp \colon \Int \to \AExp
+\end{align*}
+The axiom that says $\IntAsAExp$ is injective is as follows.
+We shall not write these usual axioms from now on for simplicity.
+$$
+\IntAsAExp(m) = \IntAsAExp(n) \to m = n
+$$
+
+\begin{lstlisting}[language=k]
+  syntax AExp ::= Id
+\end{lstlisting}
+Similarly, the above definition implicitly defines an injection function from 
+$\Id$ to $\AExp$.
+
+\begin{lstlisting}[language=k]
+  syntax AExp ::= AExp "/" AExp [strict]
+\end{lstlisting}
+The above definition defines a language construct, which is a function symbol
+$$
+\_/\_ \colon \AExp \times \AExp \to \AExp
+$$
+We shall use the mixfix form $e_1 / e_2$ instead of the verbose prefix form 
+$\_/\_(e_1,e_2)$.
+The strictness attribute says $\_/\_$ is strict in both of its argument.
+This is defined by the following two axiom schemas:
+\begin{align*}
+& C[T] / E = (\gamma \square . C[\square]/E)[T] \\
+& E / C[T] = (\gamma \square . E/C[\square])[T]
+\end{align*}
+
+\begin{lstlisting}[language=k]
+  syntax AExp ::= AExp "+" AExp [strict]
+\end{lstlisting}
+Similarly, the above definition defines a language construct
+$$
+\_+\_ : \AExp \times \AExp \to \AExp
+$$
+and two strictness axiom schemas.
+
+\begin{lstlisting}[language=k]
+  syntax BExp ::= Bool
+\end{lstlisting}
+The above definition defines a sort $\BExp$ as a ``subsort'' of the built-in 
+sort \Bool.
+The injective function from {\Bool} to {\BExp} is defined.
+
+\begin{lstlisting}[language=k]
+  syntax AExp "<=" AExp [seqstrict]
+\end{lstlisting}
+The above definition defines a language construct
+$$
+\_\le\_ \colon \AExp \times \AExp \to \BExp
+$$
 \section{Proof of Faithfulness Theorem}
 \label{sec:proof-of-faithfulness-theorem}
 \paragraph{Warning. }
