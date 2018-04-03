@@ -51,7 +51,7 @@ data MLRule sort label var term hypothesis =
  | Existence var
      -- ^ Ex x.x
  | Singvar var term [Int] [Int]
- deriving (Functor, Foldable, Traversable, Show)
+ deriving (Functor, Foldable, Traversable, Eq, Show)
 
 -- | Lens focusing on the terms within a Rule.
 ruleTerms :: (Applicative f)
