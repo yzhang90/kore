@@ -59,6 +59,61 @@ instance (Pretty id, Pretty formula, Pretty (rule id)) => Pretty (Command id rul
   pretty (Add id formula) = pretty id<+>colon<+>pretty formula
   pretty (Derive id formula rule) = pretty id<+>colon<+>pretty formula<+>pretty("by"::Text)<+>pretty rule
 
+data CheckResult =  Success String 
+                  | Semi    String 
+                  | Failure String deriving Show
+
+
+{- Takes a previous proof state, and a line.
+ - Add the line to the proof, return proof if 
+ - valid else return error
+ -}
+
+checkProofLine 
+  :: (Ord ix
+      , ProofSystem error rule formula
+      , Pretty ix
+      , Pretty (rule ix)
+      , Pretty formula)
+  => (formula -> Either (Error error) ())
+  -> Parser (Command ix rule formula)
+  -> Either (CheckResult) (ProverState ix rule formula)
+  -> String
+  -> Either (CheckResult) (ProverState ix rule formula)
+
+
+checkProofLine formulaVerifier commandParser maybeProofState proofLine = 
+  case maybeProofState of
+    (Right (ProverState currentProof)) -> case (runParser commandParser "" (pack proofLine)) of  
+                                           Right cmd ->  (case (applyCommand formulaVerifier cmd currentProof) of 
+                                                            Right proof -> Right (ProverState proof)
+                                                            Left  error -> Left  (Failure "Error"))
+                                           Left   _  -> Left (Failure "Error") 
+    (Left _)     -> Left (Failure "Error") 
+    
+{- One shot method to run the prover on an object. 
+ - Given a string representing an ML Proof Object
+ - checks whether the proof object is a valid ML proof 
+ -}
+
+checkProof
+  :: (Ord ix
+      , ProofSystem error rule formula
+      , Pretty ix
+      , Pretty (rule ix)
+      , Pretty formula)
+  => (formula -> Either (Error error) ())
+  -> Parser (Command ix rule formula)
+  -> String  
+  -> Either (CheckResult) (ProverState ix rule formula) 
+
+checkProof formulaVerifier commandParser proofString = 
+  foldl (checkProofLine formulaVerifier commandParser) (Right (ProverState emptyProof))  proofLines
+  where
+  proofLines :: [String] = lines proofString
+      
+
+
 runProver
   ::  ( Ord ix
       , ProofSystem error rule formula
