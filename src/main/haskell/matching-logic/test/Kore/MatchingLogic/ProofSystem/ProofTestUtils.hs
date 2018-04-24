@@ -13,17 +13,21 @@ import           Data.Kore.AST.Common                             (Application (
                                                                   Sort (..),
                                                                   Symbol (..),
                                                                   SymbolOrAlias (..),
-                                                                  Variable)
+                                                                  Variable,
+                                                                  Object)
 
 import           Kore.MatchingLogic.HilbertProof                  (Proof (..))
 import           Kore.MatchingLogic.ProofSystem.Minimal           (MLRule (..))
 import           Data.Text.Prettyprint.Doc
 import           Data.Kore.MetaML.AST                             (MetaMLPattern)
-import           Text.Megaparsec
 import           Kore.MatchingLogic.ProofSystem.Minimal.Syntax
 import           Data.Kore.Parser.ParserImpl                      (sortParser,
                                                                    unifiedVariableOrTermPatternParser,
                                                                    symbolParser)
+import           Kore.MatchingLogic.ProverRepl                    (checkProof, 
+                                                                   parseCommand,
+                                                                   Command,
+                                                                   Parser)
 import           Data.Kore.MetaML.MetaToKore
 import           Kore.MatchingLogic.ProofSystem.MLProofSystem     (formulaVerifier)
 import           Data.Kore.Parser.Parser                  
@@ -32,6 +36,8 @@ import           Data.Kore.ASTVerifier.DefinitionVerifier         (verifyAndInde
 
 import          Data.Kore.ASTVerifier.AttributesVerifier          (AttributesVerification (..))
 import          Kore.MatchingLogic.Error
+import          Data.Kore.AST.Kore                                (UnifiedPattern)
+import          Text.Parsec.Prim
 
 newtype NewGoalId = NewGoalId Int
 newtype GoalId = GoalId Int
@@ -60,6 +66,7 @@ type MLProofCommand =
             (Variable Meta)
             (MetaMLPattern Variable)
         )
+        UnifiedPattern
         
 {-
  - Parsers for proof object
@@ -87,19 +94,23 @@ formulaParser               :: Parser UnifiedPattern
 metaViaFormulaParser        :: Parser (MetaMLPattern Variable)
 testCommandParser           :: Parser MLProofCommand
 testRuleParser              :: Parser (MLRule
-                                      (Sort          Meta)
-                                      (SymbolOrAlias Meta)
-                                      (Variable      Meta)
-                                      (MetaMLPattern Variable)
-                                    )
+                                       (Sort          Meta)
+                                       (SymbolOrAlias Meta)
+                                       (Variable      Meta)
+                                       (MetaMLPattern Variable)
+                                       (GoalId)
+                                      )
 
-goalIdParser                = GoalId                             $    read <$> some digitChar
+goalIdParser                = do
+                                x <- many digitChar
+                                return $ GoalId (read x)
+
 objectSortParser            = sortParser Object
 metaViaObjectSortParser     = objectSortParser                   >>= return $ patternKoreToMeta
 objectSymbolParser          = symbolParser Object
 metaViaObjectSymbolParser   = objectSymbolParser                 >>= return $ patternKoreToMeta
 formulaParser               = unifiedVariableOrTermPatternParser
-metaViaObjectPatternParser  = formulaParser                      >>= return $ patternKoreToMeta
+metaViaFormulaParser        = formulaParser                      >>= return $ patternKoreToMeta
 objectVariableParser        = variableParser Object
 metaViaObjectVariableParser = objectVariableParser               >>= return $ patternKoreToMeta
 
@@ -116,16 +127,12 @@ testCommandParser          = parseCommand goalIdParser metaViaFormulaParser test
 
 
 
-testFormulaVerifier :: String -> Either (Error MLError) ()
+testFormulaVerifier :: String -> Either (MLError) ()
 
 testFormulaVerifier moduleStr formula =  
   case (fromKore moduleStr) of 
     Left  _          -> Left MLError
     Right definition -> ( case (verifyAndIndexDefinition DoNotVerifyAttributes definition) of
-                            Left  _             -> (Left (MLError ()))
+                            Left  _             -> (Left (MLError))
                             Right indexedModule -> formulaVerifier indexedModule formula)  
-
-
-
-
 

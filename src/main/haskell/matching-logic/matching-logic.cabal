@@ -88,6 +88,7 @@ test-suite test
       test
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends: base
+               , parsec
                , QuickCheck
                , containers
                , text
