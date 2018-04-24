@@ -26,6 +26,12 @@ import           Data.Kore.Parser.ParserImpl                      (sortParser,
                                                                    symbolParser)
 import           Data.Kore.MetaML.MetaToKore
 import           Kore.MatchingLogic.ProofSystem.MLProofSystem     (formulaVerifier)
+import           Data.Kore.Parser.Parser                  
+import           Data.Kore.ASTVerifier.DefinitionVerifier         (verifyAndIndexDefinition)
+                                                       
+
+import          Data.Kore.ASTVerifier.AttributesVerifier          (AttributesVerification (..))
+import          Kore.MatchingLogic.Error
 
 newtype NewGoalId = NewGoalId Int
 newtype GoalId = GoalId Int
@@ -55,12 +61,6 @@ type MLProofCommand =
             (MetaMLPattern Variable)
         )
         
-
-{-
- - arithmeticModule is a simple indexed module used in tests 
- -}
-
-
 {-
  - Parsers for proof object
  - In order to process object level proof objects, we need the  
@@ -116,4 +116,16 @@ testCommandParser          = parseCommand goalIdParser metaViaFormulaParser test
 
 
 
-testFormulaVerifier = formulaVerifier arithmeticModule 
+testFormulaVerifier :: String -> Either (Error MLError) ()
+
+testFormulaVerifier moduleStr formula =  
+  case (fromKore moduleStr) of 
+    Left  _          -> Left MLError
+    Right definition -> ( case (verifyAndIndexDefinition DoNotVerifyAttributes definition) of
+                            Left  _             -> (Left (MLError ()))
+                            Right indexedModule -> formulaVerifier indexedModule formula)  
+
+
+
+
+

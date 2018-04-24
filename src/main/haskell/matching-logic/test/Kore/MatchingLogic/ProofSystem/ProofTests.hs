@@ -27,7 +27,6 @@ proofTests =
               
 onePlusOneProofTest :: TestTree
 
-
 checkProofTest proofString = 
   case (checkProof testFormulaVerifier testCommandParser proofString) of
     (Success _) -> True
@@ -46,9 +45,10 @@ checkProofTest proofString =
 
 onePlusOneProofTest = 
   testCaseSteps "OnePlusOneProofTest" $ \step -> do
-  step "Loading 1+1=2.obj..."
-  x <- readFile "test/resources/1+1=2.obj" 
-  step "Running Prover   ..."
+  step "Loading 1+1=2.obj ..."
+  x <- readFile "../../../test/resources/1+1=2.obj"
+  step "Loading nat.kore  ..." 
+  y <- readFile "../../../test/resources/nat.kore"
   assertEqual "1+1=2 proof check" (checkProofTest x) True 
   
 
