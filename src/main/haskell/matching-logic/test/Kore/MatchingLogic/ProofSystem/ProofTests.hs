@@ -1,11 +1,11 @@
 module Kore.MatchingLogic.ProofSystem.ProofTests 
   (proofTests) where 
 
-import           Test.Tasty                                   (TestTree,
-                                                               testGroup)
+import           Test.Tasty                                              (TestTree,
+                                                                          testGroup)
 
-import           Kore.MatchingLogic.HilbertProof              as HilbertProof (Proof (..))
-import           Kore.MatchingLogic.ProofSystem.Minimal       (MLRule (..))
+import           Kore.MatchingLogic.HilbertProof                         as HilbertProof (Proof (..))
+import           Kore.MatchingLogic.ProofSystem.Minimal                  (MLRule (..))
 import           Test.Tasty.HUnit
 import           Kore.MatchingLogic.ProverRepl                           (checkProof, parseCommand)
 import           Data.Kore.AST.Kore                                      (UnifiedPattern, UnifiedSort)
@@ -13,7 +13,9 @@ import           Data.Kore.Parser.ParserImpl                             (unifie
 import           Kore.MatchingLogic.ProofSystem.Minimal                  (MLRule)
 import           Data.Kore.AST.Common                                    (SymbolOrAlias (..))
 import           Kore.MatchingLogic.ProofSystem.MLProofSystem            (formulaVerifier)
-import           Kore.MatchingLogic.ProofSystem.ProofTestUtils 
+import           Kore.MatchingLogic.ProofSystem.ProofTestUtils           (testRuleParser
+                                                                          , testFormulaVerifier
+                                                                          , testCommandParser)
 import           Text.Megaparsec
 
 proofTests :: TestTree
@@ -27,11 +29,10 @@ onePlusOneProofTest :: TestTree
 
 
 checkProofTest proofString = 
-  case checkProof testFormulaVerifier commandParser proofString of
+  case (checkProof testFormulaVerifier testCommandParser proofString) of
     (Success _) -> True
     _           -> False
     
-
 
 {- 
  - The proof object is written completely in the object level.

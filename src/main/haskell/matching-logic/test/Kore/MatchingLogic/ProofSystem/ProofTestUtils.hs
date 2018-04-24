@@ -1,31 +1,31 @@
 module Kore.MatchingLogic.ProofSystem.ProofTestUtils
   (GoalId(..), MLProof(..), NewGoalId(..)) where
 
-import           Data.Kore.AST.Common                         (Application (..),
-                                                               Attributes (..),
-                                                               Definition (..),
-                                                               Id (..), Meta,
-                                                               Module (..),
-                                                               ModuleName (..),
-                                                               Pattern (..),
-                                                               Sentence (..),
-                                                               SentenceSymbol (..),
-                                                               Sort (..),
-                                                               Symbol (..),
-                                                               SymbolOrAlias (..),
-                                                               Variable)
+import           Data.Kore.AST.Common                             (Application (..),
+                                                                  Attributes (..),
+                                                                  Definition (..),
+                                                                  Id (..), Meta,
+                                                                  Module (..),
+                                                                  ModuleName (..),
+                                                                  Pattern (..),
+                                                                  Sentence (..),
+                                                                  SentenceSymbol (..),
+                                                                  Sort (..),
+                                                                  Symbol (..),
+                                                                  SymbolOrAlias (..),
+                                                                  Variable)
 
-import           Kore.MatchingLogic.HilbertProof               (Proof (..))
-import           Kore.MatchingLogic.ProofSystem.Minimal        (MLRule (..))
+import           Kore.MatchingLogic.HilbertProof                  (Proof (..))
+import           Kore.MatchingLogic.ProofSystem.Minimal           (MLRule (..))
 import           Data.Text.Prettyprint.Doc
-import           Data.Kore.MetaML.AST                          (MetaMLPattern)
+import           Data.Kore.MetaML.AST                             (MetaMLPattern)
 import           Text.Megaparsec
 import           Kore.MatchingLogic.ProofSystem.Minimal.Syntax
-import           Data.Kore.Parser.ParserImpl                  (sortParser,
-                                                               unifiedVariableOrTermPatternParser,
-                                                               symbolParser)
+import           Data.Kore.Parser.ParserImpl                      (sortParser,
+                                                                   unifiedVariableOrTermPatternParser,
+                                                                   symbolParser)
 import           Data.Kore.MetaML.MetaToKore
-import           Kore.MatchingLogic.ProofSystem.MLProofSystem (formulaVerifier)
+import           Kore.MatchingLogic.ProofSystem.MLProofSystem     (formulaVerifier)
 
 newtype NewGoalId = NewGoalId Int
 newtype GoalId = GoalId Int
@@ -33,7 +33,6 @@ newtype GoalId = GoalId Int
 
 instance Pretty GoalId where
     pretty (GoalId i) = pretty "goalId:" <> pretty i
-
 
 type MLProof =
     Proof
@@ -57,6 +56,10 @@ type MLProofCommand =
         )
         
 
+{-
+ - arithmeticModule is a simple indexed module used in tests 
+ -}
+
 
 {-
  - Parsers for proof object
@@ -71,38 +74,46 @@ type MLProofCommand =
  -                          -> Parser Formula
  -  
  -}
-goalIdParser              :: Parser GoalId
-objectSortParser          :: Parser (Sort          Object)
-metaViaObjectSortParser   :: Parser (Sort          Meta)
-objectSymbolParser        :: Parser (SymbolOrAlias Object)
-metaViaObjectSymbolParser :: Parser (SymbolOrAlias Meta)
-formulaParser             :: Parser UnifiedPattern
-metaViaFormulaParser      :: Parser (MetaMLPattern Variable)
-testCommandParser         :: Parser MLProofCommand
-testRuleParser            :: Parser (MLRule
+
+
+goalIdParser                :: Parser GoalId
+objectSortParser            :: Parser (Sort          Object)
+metaViaObjectSortParser     :: Parser (Sort          Meta)
+objectSymbolParser          :: Parser (SymbolOrAlias Object)
+metaViaObjectSymbolParser   :: Parser (SymbolOrAlias Meta)
+objectVariableParser        :: Parser (Variable      Object)
+metaViaObjectVariableParser :: Parser (Variable      Meta)
+formulaParser               :: Parser UnifiedPattern
+metaViaFormulaParser        :: Parser (MetaMLPattern Variable)
+testCommandParser           :: Parser MLProofCommand
+testRuleParser              :: Parser (MLRule
                                       (Sort          Meta)
                                       (SymbolOrAlias Meta)
                                       (Variable      Meta)
                                       (MetaMLPattern Variable)
                                     )
 
-goalIdParser               = GoalId                             $    read <$> some digitChar
-objectSortParser           = sortParser Object
-metaViaObjectSortParser    = objectSortParser                   >>= return $ patternKoreToMeta
-objectSymbolParser         = symbolParser Object
-metaViaObjectSymbolParser  = objectSymbolParser                 >>= return $ patternKoreToMeta
-formulaParser              = unifiedVariableOrTermPatternParser
-metaViaObjectPatternParser = formulaParser                      >>= return $ patternKoreToMeta
+goalIdParser                = GoalId                             $    read <$> some digitChar
+objectSortParser            = sortParser Object
+metaViaObjectSortParser     = objectSortParser                   >>= return $ patternKoreToMeta
+objectSymbolParser          = symbolParser Object
+metaViaObjectSymbolParser   = objectSymbolParser                 >>= return $ patternKoreToMeta
+formulaParser               = unifiedVariableOrTermPatternParser
+metaViaObjectPatternParser  = formulaParser                      >>= return $ patternKoreToMeta
+objectVariableParser        = variableParser Object
+metaViaObjectVariableParser = objectVariableParser               >>= return $ patternKoreToMeta
+
+
 
 testRuleParser             = parseMLRule 
                               metaViaObjectSortParser 
                               metaViaObjectSymbolParser
-                              metaViaVariableParser 
+                              metaViaObjectVariableParser 
                               metaViaFormulaParser
                               goalIdParser
 
-testCommandParser          = parseCommand goalIdParser metaViaFormulaParser ruleParser
+testCommandParser          = parseCommand goalIdParser metaViaFormulaParser testRuleParser
 
 
 
-testFormulaVerifier = formulaVerifier testIndexedModule
+testFormulaVerifier = formulaVerifier arithmeticModule 
