@@ -89,7 +89,7 @@ checkProofLine formulaVerifier commandParser maybeProofState proofLine =
                                                             Right proof -> Right (ProverState proof)
                                                             Left  error -> Left  (Failure "Error"))
                                            Left   _  -> Left (Failure "Error") 
-    (Left _)     -> Left (Failure "Error") 
+    (Left _)                           -> Left (Failure "Error") 
     
 {- One shot method to run the prover on an object. 
  - Given a string representing an ML Proof Object
@@ -112,7 +112,6 @@ checkProof formulaVerifier commandParser proofString =
   where
   proofLines :: [String] = lines proofString
       
-
 
 runProver
   ::  ( Ord ix

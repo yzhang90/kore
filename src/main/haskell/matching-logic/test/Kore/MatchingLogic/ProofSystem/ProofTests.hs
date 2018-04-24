@@ -1,17 +1,20 @@
-module Kore.MatchingLogic.ProofSystem.ProofTests (proofTests) 
-  where 
+module Kore.MatchingLogic.ProofSystem.ProofTests 
+  (proofTests) where 
 
-import           Test.Tasty                                        (TestTree,
-                                                                    testGroup)
-import           Kore.MatchingLogic.HilbertProof              as HilbertProof (Proof (..),
-                                                                               add,
-                                                                               derive,
-                                                                               emptyProof)
-import           Kore.MatchingLogic.ProofSystem.Minimal       (MLRule (..), SubstitutedVariable (..),
-                                                               SubstitutingVariable (..))
+import           Test.Tasty                                   (TestTree,
+                                                               testGroup)
+
+import           Kore.MatchingLogic.HilbertProof              as HilbertProof (Proof (..))
+import           Kore.MatchingLogic.ProofSystem.Minimal       (MLRule (..))
 import           Test.Tasty.HUnit
-import           Kore.MatchingLogic.ProverRepl                (checkProof)
-
+import           Kore.MatchingLogic.ProverRepl                           (checkProof, parseCommand)
+import           Data.Kore.AST.Kore                                      (UnifiedPattern, UnifiedSort)
+import           Data.Kore.Parser.ParserImpl                             (unifiedPatternParser)
+import           Kore.MatchingLogic.ProofSystem.Minimal                  (MLRule)
+import           Data.Kore.AST.Common                                    (SymbolOrAlias (..))
+import           Kore.MatchingLogic.ProofSystem.MLProofSystem            (formulaVerifier)
+import           Kore.MatchingLogic.ProofSystem.ProofTestUtils 
+import           Text.Megaparsec
 
 proofTests :: TestTree
 
@@ -22,20 +25,29 @@ proofTests =
               
 onePlusOneProofTest :: TestTree
 
-data CheckResult = Success | Failure String  deriving Show
 
-type Id = Int
+checkProofTest proofString = 
+  case checkProof testFormulaVerifier commandParser proofString of
+    (Success _) -> True
+    _           -> False
+    
 
-checkProofTest proofString = False 
 
+{- 
+ - The proof object is written completely in the object level.
+ - Need to instantiate a parser for the object level, and the  
+ - proof system 
+ -
+ - We used unifiedPatternParser as the parser for kore patterns
+ - UnfiedPatterns as the type of Kore Patterns
+ - UnifiedSort as the type of Sorts
+ -}
 
 onePlusOneProofTest = 
   testCaseSteps "OnePlusOneProofTest" $ \step -> do
   step "Loading 1+1=2.obj..."
   x <- readFile "test/resources/1+1=2.obj" 
-  putStrLn x
   step "Running Prover   ..."
   assertEqual "1+1=2 proof check" (checkProofTest x) True 
   
-
 

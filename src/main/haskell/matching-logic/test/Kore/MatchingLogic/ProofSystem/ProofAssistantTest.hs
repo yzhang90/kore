@@ -48,6 +48,7 @@ import           Control.Monad                                (foldM)
 import           Data.List                                    (foldl')
 import qualified Data.Map.Strict                              as Map
 import           Data.Text.Prettyprint.Doc
+import           Kore.MatchingLogic.ProofSystem.ProofTestUtils 
 
 proofAssistantTests :: TestTree
 proofAssistantTests =
@@ -2147,22 +2148,6 @@ singletonVariableTests =
 
 -- TODO: Tests with failures to do things, e.g. using undefined IDs.
 
-newtype NewGoalId = NewGoalId Int
-newtype GoalId = GoalId Int
-    deriving (Eq, Show, Ord)
-instance Pretty GoalId where
-    pretty (GoalId i) = pretty "goalId:" <> pretty i
-
-type MLProof =
-    Proof
-        GoalId
-        (MLRule
-            (Sort Meta)
-            (SymbolOrAlias Meta)
-            (Variable Meta)
-            (MetaMLPattern Variable)
-        )
-        (MetaMLPattern Variable)
 data GoalMLProofState
     = GoalUnproven
     | GoalProven
