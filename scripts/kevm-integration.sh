@@ -9,7 +9,7 @@ git config --global user.email 'admin@runtimeverification.com'
 git config --global user.name  'CI Server'
 
 rm -rf $EVM_SEMANTICS
-git clone 'https://github.com/kframework/evm-semantics' $EVM_SEMANTICS --branch 'master'
+git clone 'https://github.com/kframework/evm-semantics' $EVM_SEMANTICS --branch 'update-haskell-backend'
 cd $EVM_SEMANTICS
 git submodule update --init --recursive
 
