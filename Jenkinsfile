@@ -49,6 +49,15 @@ pipeline {
         }
       }
     }
+    stage('KEVM Integration') {
+      steps {
+        ansiColor('xterm') {
+          sh '''
+            ./scripts/kevm-integration.sh
+          '''
+        }
+      }
+    }
   }
   post {
     always {
