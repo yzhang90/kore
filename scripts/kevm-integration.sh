@@ -5,6 +5,9 @@ set -exuo pipefail
 export TOP=${TOP:-$(git rev-parse --show-toplevel)}
 export EVM_SEMANTICS=$TOP/.build/evm-semantics
 
+git config --global user.email 'admin@runtimeverification.com'
+git config --global user.name  'CI Server'
+
 rm -rf $EVM_SEMANTICS
 git clone 'https://github.com/kframework/evm-semantics' $EVM_SEMANTICS --branch 'master'
 cd $EVM_SEMANTICS
