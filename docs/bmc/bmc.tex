@@ -1,0 +1,238 @@
+\documentclass{article}
+
+\usepackage{comment}
+\usepackage{booktabs}                           
+%\usepackage{subcaption} 
+\usepackage{mathtools}
+\usepackage{amsthm}
+\usepackage{amssymb}
+\usepackage{amsfonts}
+\usepackage{prftree}
+\usepackage{newtxtext}
+\usepackage{newtxmath}
+\usepackage[bbgreekl]{mathbbol} % must go after newtxtext & newtxmath
+\usepackage{tikz}\usetikzlibrary{arrows}\usepgflibrary{arrows}
+\usepackage{tabularx,multirow}
+\usepackage{xspace}
+\usepackage{wrapfig}
+\usepackage{array}
+\usepackage{todonotes}
+\usepackage[normalem]{ulem}
+\usepackage{multicol}
+\usepackage{thmtools} 
+\usepackage{thm-restate}
+\usepackage{stmaryrd}
+\usepackage{url}
+\usepackage{hyperref}
+
+% on usage of colons:
+% - use \colon for functions. E.g., f: Int -> Int;
+% - use : for binary relations with space around;
+% - use \cln or binary relations without space around, x:s, f(Int):Int.
+\newcommand{\cln}{\mathord{:}}
+\newcommand{\ldot}{\mathord{.}} % lower dot, used in exists x . phi
+\newcommand{\imp}{\to}
+\newcommand{\dimp}{\leftrightarrow}
+\newcommand{\setsymdiff}{\mathbin{\triangle}}
+
+\newcommand{\To}{\Rightarrow}
+\newcommand{\FV}{\mathit{FV}}
+
+\newcommand{\mathsc}[1]{{\normalfont\textsc{#1}}} % small caps in math mode
+\newcommand{\Name}{\textnormal{\textsc{Name}}}
+
+\newcommand{\Nom}{\textnormal{\textsc{Nom}}}
+\newcommand{\sig}{\mathbb{\Sigma}}
+
+\DeclarePairedDelimiter{\bracket}{\llbracket}{\rrbracket}
+\newcommand{\std}{\mathrm{std}}
+\newcommand{\hnk}{\mathrm{hnk}}
+\newcommand{\rhop}{\rho'}
+\newcommand{\rhobar}{\bar{\rho}}
+\newcommand{\rhobarp}{\widebar{\rhop}}
+
+% texts
+\newcommand{\K}{$\mathbb{K}$\xspace} % \K framework
+\newcommand{\PS}{\mathcal{H}}
+\newcommand{\oldPS}{\mathcal{P}}
+\newcommand{\z}{{\!\_\!}}
+\newcommand{\nats}{\mathbb{N}} % set of natural numbers
+\newcommand{\reals}{\mathbb{R}} % set of reals
+\newcommand{\pfun}{\rightharpoonup} % partial function arrow
+\newcommand{\dom}{\mathrm{dom}}
+\newcommand{\curry}{\mathit{curry}}
+\newcommand{\uncurry}{\mathit{uncurry}}
+\newcommand{\Rbin}{\mathbin{R}}
+\makeatletter % Roman numerals
+\newcommand{\rmnum}[1]{\romannumeral #1}
+\newcommand{\Rmnum}[1]{\expandafter\@slowromancap\romannumeral #1@}
+\newcommand*{\rom}[1]{\expandafter\@slowromancap\romannumeral #1@}
+\makeatother
+\newcommand{\sigmabar}{\bar{\sigma}}
+
+% modalities
+\newcommand{\sprev}{{\widebar{\snext}}}
+\newcommand{\wprev}{{\widebar{\wnext}}}
+\newcommand{\until}{\mathbin{U}}
+\newcommand{\wnext}{{\circ}}
+\newcommand{\snext}{{\bullet}}
+\newcommand{\always}{{\square}}
+\newcommand{\eventually}{{\lozenge}}
+\newcommand{\wellfounded}{{\mathsf{WF}}}
+\newcommand{\weakuntil}{\mathbin{U_w}}
+\newcommand{\alwaysdot}{{\boxdot}}
+
+% mathsf/textsf fonts
+\newcommand{\Lm}{\textsf{L$\mu$}\xspace}
+\newcommand{\MmL}{\textsf{MmL}\xspace}
+\newcommand{\ML}{\textsf{ML}\xspace}
+\newcommand{\SL}{{\textsf{SL}}\xspace}
+\newcommand{\SLRD}{{\textsf{SLRD}}\xspace}
+\newcommand{\FOL}{{\textsf{FOL}}\xspace}
+\newcommand{\FOLlfp}{\text{$\FOL_\lfp$}\xspace}
+\newcommand{\LTL}{\textsf{LTL}\xspace}
+\newcommand{\CTL}{\textsf{CTL}\xspace}
+\newcommand{\PDL}{\textsf{DL}\xspace}
+\newcommand{\Sfive}{\textsf{S5}\xspace}
+\newcommand{\term}{\textnormal{\textsf{term}\xspace}}
+\newcommand{\TS}{\textnormal{\textsf{TS}\xspace}}
+\newcommand{\LS}{\textnormal{\textsf{LS}\xspace}}
+\newcommand{\LTS}{\textnormal{\textsf{LTS}\xspace}}
+\newcommand{\infLTL}{\textnormal{\textsf{infLTL}\xspace}}
+\newcommand{\finLTL}{\textnormal{\textsf{finLTL}\xspace}}
+\newcommand{\DL}{\textnormal{\textsf{DL}\xspace}}
+\newcommand{\cfg}{\textnormal{\textsf{cfg}\xspace}}
+\newcommand{\RS}{\textnormal{\textsf{RS}\xspace}}
+\DeclarePairedDelimiter{\ceil}{\lceil}{\rceil}
+\DeclarePairedDelimiter{\floor}{\lfloor}{\rfloor}
+
+% sorts using mathit fonts
+\newcommand{\Nat}{\mathit{Nat}}
+\newcommand{\Map}{\mathit{Map}}
+\newcommand{\Cfg}{\mathit{Cfg}}
+\newcommand{\Bool}{\mathit{Bool}}
+\newcommand{\Int}{\textit{Int}}
+\newcommand{\Exp}{\textit{Exp}}
+\newcommand{\AExp}{\textit{BExp}}
+\newcommand{\BExp}{\textit{BExp}}
+\newcommand{\Pred}{\textit{Pred}}
+\newcommand{\World}{\textit{World}}
+\newcommand{\Term}{\textit{Term}}
+\newcommand{\State}{\textit{State}}
+\newcommand{\Action}{\textit{Action}}
+\newcommand{\Pgm}{\textit{Pgm}}
+
+% mathbb font
+\newcommand{\Sbb}{\mathbb{S}}
+
+\title{Bounded Model Checking with \\Matching $\mu$-Logic}
+\author{}
+\date{}
+\begin{document}
+\maketitle
+
+\section{Introduction}
+\subsection{Transition Systems and Language Semantics}
+We define a signature of transition systems $\sig^\TS = ( \{ \State \} , \{ \snext \in \Sigma^\mu_{\State,\State} \} )$,
+where ``$\snext$'' is a unary symbol (one-path next).
+
+$\sig^\TS$-models captures exactly the transition systems,
+where $\snext \in \Sigma^\TS_{\State,\State}$ is interpreted as the
+transition relation $R$.
+Specifically, for any transition system
+$\Sbb = (S,R)$, we can regard $\Sbb$ as a $\sig^\TS$-model
+where $S$ is the carrier set of $\State$ and
+$\snext_\Sbb(t) = \{ s \in S \mid s \mathbin{R} t \}$ contains
+all \emph{$R$-predecessors} of $t$.
+$\snext \varphi$ is matched by states which
+\emph{have at least one next state} that satisfies
+$\varphi$.
+Its dual $\wnext \varphi \equiv \neg \snext \neg \varphi$ (called ``all-path next'')
+is matched by $s$ if \emph{for all} states $t$ such that $s \mathbin{R} t$,
+we have $t$ matches $\varphi$. In particular, if $s$ has no successor,
+then $s$ matches $\wnext \varphi$ for all $\varphi$.
+
+A Language semantics can be seen as the definition of a transition system.
+In \K framework, a language semantics is defined as a finite set of \emph{reachability rules} over the signature
+$\sig^\RS = \sig^\cfg \cup \{ \snext \in \Sigma_{ \Cfg , \Cfg } \} $.
+$\sig^\cfg$ is the signature (of \emph{static program configurations}). 
+It may have various sorts and symbols, among which there is a distinguished sort~$\Cfg$.
+Fix a $\sig^\cfg$-model $M^\cfg$ called the \emph{configuration model},
+where $M^\cfg_\Cfg$ is the set of all configurations.
+\emph{Reachability rules}, or simply \emph{rules} have the form
+$\varphi_1 \To \varphi_2$ where $\varphi_1,\varphi_2$ are ML (without $\mu$) 
+$\sig^\cfg$-patterns.
+A reachability system yields a transition system $\Sbb = (M^\cfg_\Cfg,R)$ where
+$s \Rbin t$ if there exist a rule $\varphi_1 \To \varphi_2 \in S$
+and an $M^\cfg$-valuation $\rho$ such that
+$s \in \rhobar(\varphi_1)$ and $t \in \rhobar(\varphi_2)$.
+
+In matching logic, we can capture the same transition system by:
+\begin{enumerate}
+	\item Desugar each reachablitiy rule $\varphi_{l_i} \To \varphi_{r_i}$ to 
+	      $\forall x_i \ldot \varphi_{l_i} \imp \snext \varphi_{r_i}$, $x_i \in \FV(\varphi_{l_i})$
+	\item Introduce \emph{STEP} axiom schema: 
+	    \begin{align*}
+	    	\varphi \imp \wnext \bigvee_{i=1} \exists x_i \ldot \ceil{ \varphi_{l_i} \wedge \varphi} \wedge \varphi_{r_i}
+	    \end{align*}
+	    $\varphi$ is an arbitrary pattern of sort $\Cfg$ 
+\end{enumerate}
+The set of reachability rule describes what should be included in the transition relation.
+The STEP axiom ensures that no junk is added to the transition relation.
+It is equivalent to say that the transition relation is the \emph{least} set that satisfies the reachability rules.  
+
+\subsection{Modal $\mu$-logic in matching $\mu$-logic}
+We embed modal $\mu$-logic in matching $\mu$-logic as follows:
+\begin{align*}
+\varphi \Coloneqq
+\varphi_\cfg \mid
+\varphi \wedge \varphi \mid
+\neg \varphi \mid 
+\wnext \varphi \mid
+\mu X .\, \varphi \text{ if $\varphi$ is positive in $X$}
+\end{align*}
+$\varphi_\cfg$ is any matching logic patterns (without $\mu$) of sort $\Cfg$.
+
+The following temporal modalities can be added as derived constructs:
+\vspace*{-1ex}
+\begin{align*}
+\text{``always''} &\ 
+\always \varphi \equiv \nu X \ldot\, \varphi \wedge \wnext X
+\\
+\text{``eventually''} &\ 
+\eventually \varphi \equiv \mu X \ldot\, \varphi \vee \snext X
+\\
+\text{``until''}  &\ 
+\varphi_1 \until \varphi_2 \equiv 
+\mu X \ldot\, \varphi_2 \vee (\varphi_1 \wedge \snext X)
+\\
+\text{``well-founded''} &\
+\wellfounded \equiv \mu X \ldot \wnext X
+\end{align*}
+\vspace*{-5ex}
+
+
+\section{Bounded Model Checking}
+\subsection{Example}
+\subsubsection{Always}
+
+\subsubsection{Eventually}
+
+\subsection{Simplify pattern $\varphi \wedge \neg \psi$}
+Let us assume that term $t_1$ and $t_2$ are unifiable and $t_1 \wedge t_2 = t_1 \wedge mgu(t_1, t_2)$.
+Now we try to simplify the pattern $P = (t_1 \wedge c_1) \bigwedge \neg(t_2 \wedge c_2)$, where $c_1$ and $c_2$ are predicates.
+Suppose all the quantifiers are already pushed to the left.
+The key observation is that $t_1 \wedge \neg t_2 = t_1 \wedge \neg(t_1 \wedge t_2)$.
+\begin{align*}
+P &= (t_1 \wedge c_1) \wedge (\neg t_2 \vee \neg c_2) \\
+  &= (t_1 \wedge c_1 \wedge \neg t_2) \vee (t_1 \wedge c_1 \wedge \neg c_2) \\
+  &= (t_1 \wedge \neg(t_1 \wedge t_2) \wedge c_1) \vee (t_1 \wedge c_1 \wedge \neg c_2) \\
+  &= (t_1 \wedge (\neg t_1 \vee \neg mgu(t_1, t_2) \wedge c_1) \vee (t_1 \wedge c_1 \wedge \neg c_2) \\
+  &= (t_1 \wedge c_1 \wedge \neg mgu(t_1, t_2)) \vee (t_1 \wedge c_1 \wedge \neg c_2) \\
+  &= t_1 \wedge c_1 \wedge \neg (mgu(t_1, t_2) \wedge c_2)
+\end{align*}
+
+
+\subsection{Soundness and Completeness}
+
+\end{document}
