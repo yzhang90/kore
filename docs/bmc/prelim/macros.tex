@@ -1,0 +1,208 @@
+%%%%%%%%%% PACKAGES
+\usepackage{comment}
+\usepackage{booktabs}                           
+%\usepackage{subcaption} 
+\usepackage{mathtools}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsfonts}
+\usepackage{prftree}
+\usepackage{newtxtext}
+\usepackage{newtxmath}
+\usepackage[bbgreekl]{mathbbol} % must go after newtxtext & newtxmath
+\usepackage{tikz}\usetikzlibrary{arrows}\usepgflibrary{arrows}
+\usepackage{tabularx,multirow}
+\usepackage{xspace}
+\usepackage{wrapfig}
+\usepackage{array}
+\usepackage{todonotes}
+\usepackage[normalem]{ulem}
+\usepackage{multicol}
+\usepackage{thmtools} 
+\usepackage{thm-restate}
+\usepackage{stmaryrd}
+\usepackage{url}
+\usepackage[hidelinks]{hyperref}
+\usepackage{listings}% http://ctan.org/pkg/listings
+\lstset{
+	basicstyle=\ttfamily,
+	mathescape
+}
+\usepackage{algorithm2e}
+\usepackage{enumitem}
+\usepackage[nocompress]{cite}
+
+% for dealing with underscores
+\usepackage[T1]{fontenc}
+
+%%%%%%%%%% UNCLASSIFIED
+% text
+\newcommand{\BMC}{Bounded Model Checking\xspace}
+\newcommand{\MmuL}{Matching $\mu$-Logic\xspace}
+\newcommand{\mmul}{matching $\mu$-logic\xspace}
+\newcommand{\ml}{matching logic\xspace}
+\newcommand{\ModmuL}{Modal $\mu$-Logic\xspace}
+\newcommand{\modmul}{modal $\mu$-logic\xspace}
+\newcommand{\PS}{\mathcal{H}}
+\newcommand{\nats}{\mathbb{N}} % set of natural numbers
+\makeatletter % Roman numerals
+\newcommand{\rmnum}[1]{\romannumeral #1}
+\newcommand{\Rmnum}[1]{\expandafter\@slowromancap\romannumeral #1@}
+\newcommand*{\rom}[1]{\expandafter\@slowromancap\romannumeral #1@}
+\makeatother
+\newcommand{\K}{$\mathbb{K}$\xspace} % \K framework
+\newcommand{\doubleslash}{//\xspace}
+\newcommand{\LTL}{\textsf{LTL}\xspace}
+\newcommand{\CTL}{\textsf{CTL}\xspace}
+
+% basic math
+\newcommand{\pset}[1]{\mathcal{P}(#1)} % powerset
+\newcommand{\cln}{\mathord{:}}
+\newcommand{\ldot}{\mathord{.}}
+\newcommand{\imp}{\to}
+\newcommand{\dimp}{\leftrightarrow}
+\newcommand{\setsymdiff}{\mathbin{\triangle}}
+\newcommand{\FV}{\mathit{FV}}
+\newcommand{\To}{\Rightarrow}
+
+% an implementation of widebar
+% obtained from [[https://tex.stackexchange.com/questions/16337/
+% can-i-get-a-widebar-without-using-the-mathabx-package]]
+\makeatletter
+\let\save@mathaccent\mathaccent
+\newcommand*\if@single[3]{%
+	\setbox0\hbox{${\mathaccent"0362{#1}}^H$}%
+	\setbox2\hbox{${\mathaccent"0362{\kern0pt#1}}^H$}%
+	\ifdim\ht0=\ht2 #3\else #2\fi
+}
+%The bar will be moved to the right by a half of \macc@kerna, which is computed 
+%by amsmath:
+\newcommand*\rel@kern[1]{\kern#1\dimexpr\macc@kerna}
+%If there's a superscript following the bar, then no negative kern may follow 
+%the bar;
+%an additional {} makes sure that the superscript is high enough in this case:
+\newcommand*\widebar[1]{\@ifnextchar^{{\wide@bar{#1}{0}}}{\wide@bar{#1}{1}}}
+%Use a separate algorithm for single symbols:
+\newcommand*\wide@bar[2]{\if@single{#1}{\wide@bar@{#1}{#2}{1}}{\wide@bar@{#1}{#2}{2}}}
+\newcommand*\wide@bar@[3]{%
+	\begingroup
+	\def\mathaccent##1##2{%
+		%Enable nesting of accents:
+		\let\mathaccent\save@mathaccent
+		%If there's more than a single symbol, use the first character instead 
+		%(see below):
+		\if#32 \let\macc@nucleus\first@char \fi
+		%Determine the italic correction:
+		\setbox\z@\hbox{$\macc@style{\macc@nucleus}_{}$}%
+		\setbox\tw@\hbox{$\macc@style{\macc@nucleus}{}_{}$}%
+		\dimen@\wd\tw@
+		\advance\dimen@-\wd\z@
+		%Now \dimen@ is the italic correction of the symbol.
+		\divide\dimen@ 3
+		\@tempdima\wd\tw@
+		\advance\@tempdima-\scriptspace
+		%Now \@tempdima is the width of the symbol.
+		\divide\@tempdima 10
+		\advance\dimen@-\@tempdima
+		%Now \dimen@ = (italic correction / 3) - (Breite / 10)
+		\ifdim\dimen@>\z@ \dimen@0pt\fi
+		%The bar will be shortened in the case \dimen@<0 !
+		\rel@kern{0.6}\kern-\dimen@
+		\if#31
+		\overline{\rel@kern{-0.6}\kern\dimen@\macc@nucleus\rel@kern{0.4}\kern\dimen@}%
+		\advance\dimen@0.4\dimexpr\macc@kerna
+		%Place the combined final kern (-\dimen@) if it is >0 or if a 
+		%superscript follows:
+		\let\final@kern#2%
+		\ifdim\dimen@<\z@ \let\final@kern1\fi
+		\if\final@kern1 \kern-\dimen@\fi
+		\else
+		\overline{\rel@kern{-0.6}\kern\dimen@#1}%
+		\fi
+	}%
+	\macc@depth\@ne
+	\let\math@bgroup\@empty \let\math@egroup\macc@set@skewchar
+	\mathsurround\z@ \frozen@everymath{\mathgroup\macc@group\relax}%
+	\macc@set@skewchar\relax
+	\let\mathaccentV\macc@nested@a
+	%The following initialises \macc@kerna and calls \mathaccent:
+	\if#31
+	\macc@nested@a\relax111{#1}%
+	\else
+	%If the argument consists of more than one symbol, and if the first token is
+	%a letter, use that letter for the computations:
+	\def\gobble@till@marker##1\endmarker{}%
+	\futurelet\first@char\gobble@till@marker#1\endmarker
+	\ifcat\noexpand\first@char A\else
+	\def\first@char{}%
+	\fi
+	\macc@nested@a\relax111{\first@char}%
+	\fi
+	\endgroup
+}
+\makeatother
+
+% mathsc fonts
+\newcommand{\mathsc}[1]{{\normalfont\textsc{#1}}} % small caps in math mode
+\newcommand{\Var}{\mathsc{Var}}
+\newcommand{\EVar}{\mathsc{EVar}}
+\newcommand{\SVar}{\mathsc{SVar}}
+\newcommand{\PVar}{\mathsc{PVar}}
+\newcommand{\Pattern}{\mathsc{Pattern}}
+
+% mathsf/textsf fonts
+\newcommand{\TS}{\textnormal{\textsf{TS}\xspace}}
+\newcommand{\RS}{\textnormal{\textsf{RS}\xspace}}
+\newcommand{\Lang}{\textnormal{\textsf{Lang}\xspace}}
+\newcommand{\cfg}{\textnormal{\textsf{cfg}\xspace}}
+\newcommand{\init}{\textnormal{\textsf{init}\xspace}}
+\newcommand{\prop}{\textnormal{\textsf{prop}\xspace}}
+\newcommand{\pattern}{\textnormal{\textsf{pattern}\xspace}}
+\newcommand{\predicate}{\textnormal{\textsf{predicate}\xspace}}
+\newcommand{\sub}{\textnormal{\textsf{sub}\xspace}}
+\newcommand{\IMP}{{\mathsf{IMP}}}
+
+% mathcal font
+\newcommand{\Acal}{\mathcal{A}}
+\newcommand{\Ccal}{\mathcal{C}}
+\newcommand{\Fcal}{\mathcal{F}}
+\newcommand{\Qcal}{\mathcal{Q}}
+
+% mathbb font
+\newcommand{\Sbb}{\mathbb{S}}
+
+% sorts using mathit fonts
+\newcommand{\Cfg}{\mathit{Cfg}}
+\newcommand{\State}{\textit{State}}
+
+% symbol
+\newcommand{\rhobar}{\bar{\rho}}
+\newcommand{\sig}{\mathbb{\Sigma}}
+\newcommand{\sigmaM}{\sigma_M}
+\DeclarePairedDelimiter{\ceil}{\lceil}{\rceil}
+\DeclarePairedDelimiter{\floor}{\lfloor}{\rfloor}
+\DeclarePairedDelimiter{\bracket}{\llbracket}{\rrbracket}
+
+% contexts
+\newcommand{\CSub}[1]{C_{#1}}
+\newcommand{\Csigma}{\CSub{\sigma}}
+\newcommand{\Csigmaapp}[1]{\CSub{\sigma}[#1]}
+
+% name of the proof rules
+\newcommand{\prule}[1]{\textnormal{\textsc{(#1)}}}
+
+\newcommand{\modusponens}{\prule{Modus Ponens}\xspace}
+\newcommand{\propagationbottom}{\prule{Propagation$_\bot$}\xspace}
+\newcommand{\propagationvee}{\prule{Propagation$_\vee$}\xspace}
+\newcommand{\framing}{\prule{Framing}\xspace}
+\newcommand{\existence}{\prule{Existence}\xspace}
+\newcommand{\singletonvariable}{\prule{Singleton Variable}\xspace}
+\newcommand{\step}{\prule{STEP}\xspace}
+
+% modalities
+\newcommand{\wnext}{{\circ}}
+\newcommand{\snext}{{\bullet}}
+\newcommand{\eventually}{{\lozenge}}
+\newcommand{\always}{{\square}}
+\newcommand{\until}{\mathbin{U}}
+\newcommand{\wellfounded}{{\mathsf{WF}}}
