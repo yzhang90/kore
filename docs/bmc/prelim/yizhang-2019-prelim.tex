@@ -670,7 +670,6 @@ Moreover, we have four additional requirements on $\varphi_\sub$:
 \item $\neg$ only appears before static configuration sub-patterns~\footnote{patterns do not contain $\mu$, $\nu$ or $\snext$-derived symbols}.
 \item sub-patterns of $\varphi_\sub$ do not have form $\wnext \varphi_1 \vee \wnext \varphi_2$
 \end{itemize}
-Also, we require that $X$ only appears under $\wnext$ in $\varphi_\sub$ and $\neg$ does not appear before $\wnext$ or $X$.
 For example, given the $\IMP$ semantics~\footnote{\url{https://github.com/kframework/k/blob/master/k-distribution/tutorial/1_k/2_imp/lesson_5/imp.k}}, the following pattern checks the \emph{non-division-by-zero} property~\footnote{$\always$ is a derived construct defined in Section~\ref{subsec: defining_modmul}}:
 \begin{lstlisting}
     (<k> while (true) { 
@@ -910,7 +909,6 @@ To support this, I worked on the underlying theories and came up with an algorit
 I implemented the idea in the \K haskell-backend and made it work on simple language semantics such as IMP.
 I will thoroughly evaluate the model checker on real world language and applications.
 I believe that this approach reduces the trust base of the tool and would eliminate the need for dedicated model checkers for different languages.
-
 
 \bibliographystyle{plain}
 \bibliography{ref}
