@@ -709,6 +709,9 @@ $\dep = 0$\;
 	    	\tcp{case analysis}
 	    	$\cGoals = \cGoals \cup \{ \varphi_{l_1} \imp \varphi_r, \cdots, \varphi_{l_n} \imp \varphi_r \}$\;
 	    }
+        \uElseIf{$\varphi_r = \nabla X \ldot \varphi$}{
+            $\cGoals = \cGoals \cup \{ \varphi_l \imp \varphi [ \nabla X \ldot \, \varphi / X ] \}$\;
+        }
         \uElseIf{$\varphi_r$ doesn't contain $\wnext$ operator}{
         	encode $\neg(\varphi_l \imp \varphi_r)$ in Z3\;
         	\If{sat}{
@@ -720,9 +723,6 @@ $\dep = 0$\;
     	}
         \uElseIf{$\varphi_r = \varphi_{r_1} \vee \varphi_{r_2}$ and $\varphi_{r_1}$ doesn't contain $\wnext$ operator}{
         	$\cGoals = \cGoals \cup \{ (\varphi_l \wedge \neg \varphi_{r_1}) \imp \varphi_{r_2} \}$\;
-        }
-        \uElseIf{$\varphi_r = \nabla X \ldot \varphi$}{
-        	$\cGoals = \cGoals \cup \{ \varphi_l \imp \varphi [ \nabla X \ldot \, \varphi / X ] \}$\;
         }
         \uElseIf{$\varphi_r = \wnext \varphi$}{
         	compute $\varphi_w$ using \emph{STEP} axiom in $\Gamma^\Lang$\;
