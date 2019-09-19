@@ -86,6 +86,21 @@ import Kore.Unification.Unify
     ( MonadUnify
     )
 
+import qualified Data.Foldable as Foldable
+import qualified Data.Text as Text
+import qualified Data.Text.Prettyprint.Doc as Pretty
+import Kore.Logger
+    ( withLogScope
+    , logDebug
+    )
+import Kore.Unparser
+    ( unparse
+    )
+
+import qualified Kore.Profiler.Profile as Profile
+    ( simplifyEquality
+    )
+
 {-|'simplify' simplifies an 'Equals' pattern made of 'OrPattern's.
 
 This uses the following simplifications
@@ -167,7 +182,28 @@ simplify
     -> Equals Sort (OrPattern variable)
     -> simplifier (OrPattern variable)
 simplify predicate Equals { equalsFirst = first, equalsSecond = second } =
-    simplifyEvaluated predicate first second
+    Profile.simplifyEquality $ do
+        withLogScope "Simplification"
+            . withLogScope "Equals"
+                . logDebug
+                .Text.pack. show . Pretty.vsep
+                $ [ "first:"
+                  , (Pretty.indent 2 . Pretty.vsep)
+                        (unparse <$> Foldable.toList first)
+                  , "second:"
+                  , (Pretty.indent 2 . Pretty.vsep)
+                        (unparse <$> Foldable.toList second)
+                  ]
+        result <- simplifyEvaluated predicate first second
+        withLogScope "Simplification"
+            . withLogScope "Equals"
+                . logDebug
+                . Text.pack. show . Pretty.vsep
+                $ [ "result:"
+                  , (Pretty.indent 2 . Pretty.vsep)
+                        (unparse <$> Foldable.toList result)
+                  ]
+        return result
 
 {- TODO (virgil): Preserve pattern sorts under simplification.
 

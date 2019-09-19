@@ -100,6 +100,8 @@ import Kore.Variables.UnifiedVariable
     , foldMapVariable
     )
 
+import qualified Data.Text as Text
+
 -- | Wraps functions such as 'unificationProcedure' and
 -- 'Kore.Step.Axiom.Matcher.matchAsUnification' to be used in
 -- 'stepWithRule'.
@@ -189,6 +191,14 @@ unifyRule
         RulePattern { requires = ruleRequires } = rule'
         requires' = Condition.fromPredicate ruleRequires
     unification' <- simplifyPredicate (unification <> requires')
+    Log.withLogScope "unifyRule"
+        .Log.logDebug
+        .Text.pack . show . Pretty.vsep
+        $ [ "unification:"
+          , Pretty.indent 2 (unparse unification)
+          , "unification':"
+          , Pretty.indent 2 (unparse unification')
+          ]
     return (rule' `Conditional.withCondition` unification')
 
 unifyRules
@@ -330,6 +340,14 @@ finalizeRule initial unifiedRule =
     Log.withLogScope "finalizeRule" $ Monad.Unify.gather $ do
         let initialCondition = Conditional.withoutTerm initial
         let unificationCondition = Conditional.withoutTerm unifiedRule
+        Log.withLogScope "condition"
+            .Log.logDebug
+            .Text.pack . show . Pretty.vsep
+            $ [ "initialCondition:"
+              , Pretty.indent 2 (unparse initialCondition)
+              , "unificationCondition:"
+              , Pretty.indent 2 (unparse unificationCondition)
+              ]
         applied <- applyInitialConditions initialCondition unificationCondition
         -- Log unifiedRule here since ^ guards against bottom
         debugAppliedRule unifiedRule
@@ -398,6 +416,13 @@ finalizeRulesSequence initial unifiedRules
     finalizeRuleSequence' unifiedRule = do
         remainder <- State.get
         let remainderPattern = Conditional.withCondition initialTerm remainder
+        Log.withLogScope "finalizeRule"
+            .Log.withLogScope "remainderPattern"
+                .Log.logDebug
+                .Text.pack . show . Pretty.vsep
+                $ [ "remainderPattern:"
+                  , Pretty.indent 2 (unparse remainderPattern)
+                  ]
         results <- Monad.Trans.lift $ finalizeRule remainderPattern unifiedRule
         let unification = Conditional.withoutTerm unifiedRule
             remainder' =

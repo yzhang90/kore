@@ -650,8 +650,6 @@ check solver = do
                 warn solver ["check"] (buildText asserts)
             return Unknown
         Atom "sat"     -> do
-            model <- command solver (List [Atom "get-model"])
-            debug solver ["check"] (buildText model)
             return Sat
         _ -> fail $ unlines
             [ "Unexpected result from the SMT solver:"

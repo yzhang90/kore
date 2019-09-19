@@ -14,6 +14,7 @@ module Kore.Profiler.Profile
     , mergeSubstitutions
     , resimplification
     , simplificationBranching
+    , simplifyEquality
     , smtDecision
     , timeStrategy
     ) where
@@ -240,3 +241,13 @@ executionQueueLength len action = do
     when logStrategy
         (profileValue ["ExecutionQueueLength"] len)
     action
+
+simplifyEquality
+    :: MonadProfiler profiler
+    => profiler result
+    -> profiler result
+simplifyEquality action = do
+    Configuration {logEquals} <- profileConfiguration
+    if logEquals
+        then profile ["simplifyEquality"] action
+        else action

@@ -132,6 +132,9 @@ import Kore.Variables.UnifiedVariable
     )
 import qualified Kore.Verified as Verified
 
+import qualified Data.Text as Text
+import qualified Kore.Logger as Logger
+
 {- | The final nodes of an execution graph which were not proven.
 
 See also: 'Strategy.pickFinal', 'extractUnproven'
@@ -582,10 +585,39 @@ transitionRuleTemplate
         :: Prim goal
         -> ProofState goal goal
         -> Strategy.TransitionT (Rule goal) m (ProofState goal goal)
-    transitionRuleWorker CheckProven Proven = empty
+    transitionRuleWorker CheckProven Proven = do
+        Logger.withLogScope "Goal"
+            . Logger.withLogScope "checkProven"
+                . Logger.logDebug
+                . Text.pack
+                $ "proven"
+        empty
+
+    transitionRuleWorker CheckProven state = do
+        Logger.withLogScope "Goal"
+            . Logger.withLogScope "checkProven"
+                . Logger.logDebug
+                . Text.pack
+                $ "unproven"
+        return state
+
     transitionRuleWorker CheckGoalRemainder (GoalRemainder _) = empty
 
-    transitionRuleWorker ResetGoal (GoalRewritten goal) = return (Goal goal)
+    transitionRuleWorker ResetGoal (GoalRewritten goal) = do
+        Logger.withLogScope "Goal"
+            . Logger.withLogScope "resetGoal"
+                . Logger.logDebug
+                . Text.pack
+                $ "reset goal on GoalRewritten"
+        return (Goal goal)
+
+    transitionRuleWorker ResetGoal state = do
+        Logger.withLogScope "Goal"
+            . Logger.withLogScope "resetGoal"
+                . Logger.logDebug
+                . Text.pack
+                $ "reset goal is skipped on other proof state"
+        return state
 
     transitionRuleWorker Simplify (Goal g) =
         Profile.timeStrategy "Goal.Simplify"
@@ -730,7 +762,7 @@ allPathFollowupStep claims axioms =
 
 -- | Remove the destination of the goal.
 removeDestination
-    :: MonadCatch m
+    :: (MonadCatch m, Logger.MonadLog m)
     => FromRulePattern goal
     => ToRulePattern goal
     => goal
@@ -738,6 +770,13 @@ removeDestination
 removeDestination goal = errorBracket $ do
     let removal = removalPredicate destination configuration
         result = Conditional.andPredicate configuration removal
+    Logger.withLogScope "Goal"
+        . Logger.withLogScope "removeDestination"
+            . Logger.logDebug
+            . Text.pack . show . Pretty.vsep
+            $ [ "result:"
+              , (unparse result)
+              ]
     pure $ makeRuleFromPatterns goal result destination
   where
     configuration = getConfiguration goal
@@ -761,10 +800,24 @@ simplify
     => goal
     -> Strategy.TransitionT (Rule goal) m goal
 simplify goal = errorBracket $ do
+    Logger.withLogScope "Goal"
+        . Logger.withLogScope "simplifyInput"
+            . Logger.logDebug
+            . Text.pack . show . Pretty.vsep
+            $ [ "input:"
+              , (unparse configuration)
+              ]
     configs <-
         Monad.Trans.lift
         $ simplifyAndRemoveTopExists configuration
     filteredConfigs <- SMT.Evaluator.filterMultiOr configs
+    Logger.withLogScope "Goal"
+        . Logger.withLogScope "simplifyResults"
+            . Logger.logDebug
+            . Text.pack . show . Pretty.vsep
+            $ [ "results:"
+              , Pretty.vsep (unparse <$> Foldable.toList filteredConfigs)
+              ]
     if null filteredConfigs
         then pure $ makeRuleFromPatterns goal Pattern.bottom destination
         else do
@@ -872,6 +925,13 @@ deriveSeq
     -> Strategy.TransitionT (Rule goal) m (ProofState goal goal)
 deriveSeq rules goal = errorBracket $ do
     let rewrites = RewriteRule . toRulePattern <$> rules
+    Logger.withLogScope "Goal"
+        . Logger.withLogScope "deriveSeqInput"
+            . Logger.logDebug
+            . Text.pack . show . Pretty.vsep
+            $ [ "input:"
+              , (unparse configuration)
+              ]
     eitherResults <-
         Monad.Trans.lift
         . Monad.Unify.runUnifierT
@@ -904,6 +964,20 @@ deriveSeq rules goal = errorBracket $ do
                         (flip (makeRuleFromPatterns goal) destination)
                         (flip (makeRuleFromPatterns goal) destination)
                         (Result.mergeResults results)
+            let mergedResults = Result.mergeResults results
+                seqResults = fmap Result.result (Result.results mergedResults)
+                seqRemainders = Result.remainders mergedResults
+            Logger.withLogScope "Goal"
+                . Logger.withLogScope "deriveSeqResults"
+                    . Logger.logDebug
+                    . Text.pack . show . Pretty.vsep
+                    $ [ "results:"
+                      , (Pretty.indent 2 . Pretty.vsep)
+                            (unparse <$> concatMap Foldable.toList seqResults)
+                      , "remainders:"
+                      , (Pretty.indent 2 . Pretty.vsep)
+                            (unparse <$> Foldable.toList seqRemainders)
+                      ]
             results' <-
                 traverseConfigs (mapRules onePathResults)
             Result.transitionResults results'

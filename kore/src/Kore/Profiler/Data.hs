@@ -87,13 +87,14 @@ class Monad profiler => MonadProfiler profiler where
         return Configuration
             { identifierFilter = Nothing
             , dumpIdentifier = Nothing
-            , destination = GhcEventsAnalyze
+            , destination = HumanReadable
             , logBranching = False
             , logStrategy = True
             , logSimplification = False
             , logInitialization = False
             , logEvaluation = True
             , logSmt = True
+            , logEquals = True
             }
     {-# INLINE profileConfiguration #-}
 
@@ -119,6 +120,7 @@ instance MonadProfiler Identity where
             , logInitialization = False
             , logEvaluation = False
             , logSmt = False
+            , logEquals = False
             }
     {-# INLINE profileConfiguration #-}
 
@@ -156,6 +158,7 @@ data Configuration =
         , logInitialization :: !Bool
         , logEvaluation :: !Bool
         , logSmt :: !Bool
+        , logEquals :: !Bool
         }
 
 {- A profiler event.

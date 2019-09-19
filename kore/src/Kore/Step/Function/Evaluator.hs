@@ -46,6 +46,11 @@ import Kore.Internal.Pattern
 import qualified Kore.Internal.Pattern as Pattern
 import qualified Kore.Internal.Symbol as Symbol
 import Kore.Internal.TermLike as TermLike
+import Kore.Logger
+    ( MonadLog (..)
+    , withLogScope
+    , logDebug
+    )
 import qualified Kore.Profiler.Profile as Profile
     ( axiomBranching
     , axiomEvaluation
@@ -67,6 +72,8 @@ import qualified Kore.Step.Simplification.Simplify as AttemptedAxiomResults
     )
 import Kore.TopBottom
 import Kore.Unparser
+
+import qualified Data.Text as Text
 
 {-| Evaluates functions on an application pattern.
 -}
@@ -209,6 +216,7 @@ maybeEvaluatePattern
     BuiltinAndAxiomSimplifier evaluator <- lookupAxiomSimplifier termLike
     Trans.lift . tracing $ do
         let conditions = configurationCondition <> childrenCondition
+        logAxiomIdentifier identifier
         result <-
             Profile.axiomEvaluation identifier
             $ evaluator termLike conditions
@@ -272,6 +280,14 @@ maybeEvaluatePattern
         return (OrPattern.fromPattern unchangedPatt)
       | otherwise =
         reevaluateFunctions configurationCondition toSimplify
+
+    logAxiomIdentifier :: MonadLog m => Maybe AxiomIdentifier -> m()
+    logAxiomIdentifier axiomId =
+        withLogScope "Evaluator"
+        . withLogScope "evaluatePattern"
+        . logDebug
+        . Text.pack . show . Pretty.sep
+        $ ["Evaluating: ", (Pretty.pretty axiomId)]
 
 evaluateSortInjection
     :: InternalVariable variable
